@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(PkgConfig)
+find_dependency(OpenSSL)
+pkg_check_modules(GRPC REQUIRED IMPORTED_TARGET grpc++)
+pkg_check_modules(PROTOBUF REQUIRED IMPORTED_TARGET protobuf)
+include("${CMAKE_CURRENT_LIST_DIR}/onelastleaf-plugin-sdk-targets.cmake")
