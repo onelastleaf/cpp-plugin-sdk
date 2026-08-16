@@ -6,3 +6,4 @@ CTestTestfile.cmake
 Makefile
 Testing/
 .cache/
+compile_commands.json
