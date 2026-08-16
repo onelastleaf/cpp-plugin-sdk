@@ -38,8 +38,13 @@ add_custom_command(
 )
 
 add_library(onelastleaf-plugin-sdk
+  src/artifact.cpp
   src/host.cpp
+  src/job_registry.cpp
+  src/parent_liveness.cpp
   src/plugin.cpp
+  src/session.cpp
+  src/validation.cpp
   ${GENERATED_SOURCES}
 )
 add_library(onelastleaf::plugin_sdk ALIAS onelastleaf-plugin-sdk)
@@ -86,4 +91,9 @@ if(BUILD_TESTING)
   add_executable(plugin-sdk-test tests/plugin_test.cpp)
   target_link_libraries(plugin-sdk-test PRIVATE onelastleaf::plugin_sdk)
   add_test(NAME plugin-sdk-test COMMAND plugin-sdk-test)
+
+  add_executable(plugin-sdk-internal-test tests/internal_test.cpp)
+  target_include_directories(plugin-sdk-internal-test PRIVATE src)
+  target_link_libraries(plugin-sdk-internal-test PRIVATE onelastleaf::plugin_sdk)
+  add_test(NAME plugin-sdk-internal-test COMMAND plugin-sdk-internal-test)
 endif()

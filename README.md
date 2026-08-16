@@ -108,6 +108,31 @@ cancellation and deadline information, configuration access, host calls,
 structured logging, and artifact publishing. See
 [`examples/conformance.cpp`](examples/conformance.cpp) for working examples.
 
+`context.host()` returns a cheap value that is safe to copy during the action.
+It is tied to that job, though: calls made after the action finishes, after the
+job is cancelled, or after the plugin session closes fail with an exception.
+`Plugin::run()` likewise represents one process session and may only be called
+once on a `Plugin` object.
+
+For a large artifact, do not read the whole file into a `vector` first. Give the
+SDK the number of chunks and a function that reads one chunk at a time:
+
+```cpp
+context.host().store_artifact(
+    context.trace(), context.job_id(), descriptor, chunk_count,
+    [&input](std::uint32_t) {
+      std::string chunk;
+      // Read at most context.host().maximum_artifact_chunk_bytes() bytes.
+      read_next_chunk(input, chunk);
+      return chunk;
+    });
+```
+
+The source is called once for each index from zero to `chunk_count - 1`.
+Chunks must be nonempty and must match the size and SHA-256 in the descriptor.
+A zero-byte artifact uses `chunk_count == 0`; in that case the source may be an
+empty function.
+
 ## Package the plugin for oll
 
 oll installs a plugin from a Git remote and looks for `oll.toml` at the repository

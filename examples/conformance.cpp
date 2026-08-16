@@ -1,7 +1,10 @@
 #include <chrono>
+#include <cstdint>
+#include <stdexcept>
 #include <stop_token>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include <onelastleaf/plugin_sdk.hpp>
@@ -80,7 +83,10 @@ onelastleaf::ActionResult artifact(onelastleaf::ActionContext &context,
       "\xce\x5b\x50\x58\x46\xaf\xeb\xd8\x2a\xe2\xc0\x1b\x67\x33\xa6\xb5",
       32);
   context.host().store_artifact(context.trace(), context.job_id(), descriptor,
-                                {"artifact ", "payload"});
+                                2, [](std::uint32_t index) {
+                                  return index == 0 ? std::string{"artifact "}
+                                                    : std::string{"payload"};
+                                });
   onelastleaf::ActionResult result =
       onelastleaf::ActionResult::string("artifact");
   result.artifacts.push_back(std::move(descriptor));
