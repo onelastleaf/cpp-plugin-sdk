@@ -147,24 +147,30 @@ id = "com.example.my-plugin"
 name = "my-plugin"
 protocol_fingerprint = "9b236b37455965858413f5717a88e28568a459e81e87a28ff77be8845bcff75a"
 
-[[source.dependencies]]
-executable = "cmake"
-hint = "Install CMake, a C++ compiler, protobuf, and gRPC."
+[source]
+checkout = "source"
+steps = [
+  [
+    "cmake", "-S", "{source}", "-B", "{source}/build",
+    "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_INSTALL_PREFIX={install}",
+  ],
+  [
+    "cmake", "--build", "{source}/build", "--target", "install",
+    "--parallel",
+  ],
+]
 
-[[source.steps]]
-argv = ["cmake", "-S", "{source}", "-B", "{staging}/build", "-DCMAKE_BUILD_TYPE=Release", "-DCMAKE_INSTALL_PREFIX={install}"]
-
-[[source.steps]]
-argv = ["cmake", "--build", "{staging}/build", "--target", "install", "--parallel"]
+[source.dependencies]
+"cmake" = "Install CMake, a C++ compiler, protobuf, and gRPC."
 
 [runtime]
 argv = ["{install}/bin/my-plugin"]
 ```
 
 Each recipe command is an argv array, not a shell command. oll fills in the path
-placeholders, builds in a private staging directory, and installs the result as
-an immutable generation. It only launches the executable from that published
-generation.
+placeholders, builds from a private source checkout, and writes the installed
+result into a candidate that is renamed into an immutable generation. It only
+launches the executable from the published generation.
 
 When you upgrade the SDK, update the manifest fingerprint to match
 `onelastleaf::protocol_schema_sha256`. A plugin built for a different
