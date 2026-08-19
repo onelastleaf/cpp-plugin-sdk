@@ -219,10 +219,14 @@ tests directly:
 ```sh
 cmake -S . -B build \
   -DCMAKE_BUILD_TYPE=Release \
-  -DBUILD_TESTING=ON
+  -DONELASTLEAF_PLUGIN_SDK_BUILD_TESTS=ON
 cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
+
+SDK tests are opt-in. Keeping them off for normal consumers also keeps CMake's
+reserved `test` build target out of their projects, so a plugin may itself be
+named `test`.
 
 The conformance plugin is not part of the default build. Build it explicitly
 when you need it:

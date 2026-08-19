@@ -86,8 +86,14 @@ install(FILES
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/onelastleaf-plugin-sdk"
 )
 
-include(CTest)
-if(BUILD_TESTING)
+option(
+  ONELASTLEAF_PLUGIN_SDK_BUILD_TESTS
+  "Build the onelastleaf C++ plugin SDK tests"
+  OFF
+)
+if(ONELASTLEAF_PLUGIN_SDK_BUILD_TESTS)
+  enable_testing()
+
   add_executable(plugin-sdk-test tests/plugin_test.cpp)
   target_link_libraries(plugin-sdk-test PRIVATE onelastleaf::plugin_sdk)
   add_test(NAME plugin-sdk-test COMMAND plugin-sdk-test)
@@ -96,4 +102,12 @@ if(BUILD_TESTING)
   target_include_directories(plugin-sdk-internal-test PRIVATE src)
   target_link_libraries(plugin-sdk-internal-test PRIVATE onelastleaf::plugin_sdk)
   add_test(NAME plugin-sdk-internal-test COMMAND plugin-sdk-internal-test)
+
+  add_test(
+    NAME plugin-sdk-cmake-defaults
+    COMMAND "${CMAKE_COMMAND}"
+      -S "${CMAKE_CURRENT_SOURCE_DIR}/tests/cmake/default-consumer"
+      -B "${CMAKE_CURRENT_BINARY_DIR}/tests/default-consumer"
+      -DONELASTLEAF_PLUGIN_SDK_SOURCE_DIR:PATH=${CMAKE_CURRENT_SOURCE_DIR}
+  )
 endif()
