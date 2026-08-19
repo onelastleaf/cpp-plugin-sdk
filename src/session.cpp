@@ -71,9 +71,12 @@ void PluginSession::handshake() {
   if (first.has_reply_to() || first.payload_case() != Envelope::kHostHello) {
     throw std::runtime_error("HostHello must be the first host message");
   }
+  if (first.session_id().empty() || first.plugin_instance_id().empty()) {
+    throw std::runtime_error(
+        "HostHello envelope omitted its session or instance identity");
+  }
   const auto &hello = first.host_hello();
-  if (!hello.has_node() || hello.session_id().empty() ||
-      hello.plugin_instance_id().empty() ||
+  if (!hello.has_node() ||
       hello.protocol_schema_sha256() != protocol_schema_sha256_bytes() ||
       hello.plugin_id().value() != plugin_id_ ||
       hello.plugin_name().value().empty() || hello.maximum_call_depth() == 0 ||
@@ -88,7 +91,7 @@ void PluginSession::handshake() {
         "HostHello exceeds a negotiated trace depth limit");
   }
 
-  sender_->identity(hello.session_id(), hello.plugin_instance_id());
+  sender_->identity(first.session_id(), first.plugin_instance_id());
   host_impl_->maximum_artifact_chunk_bytes =
       hello.maximum_artifact_chunk_bytes();
   host_impl_->maximum_call_depth = hello.maximum_call_depth();

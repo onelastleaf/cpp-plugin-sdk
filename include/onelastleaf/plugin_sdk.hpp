@@ -20,7 +20,7 @@ struct HostAccess;
 } // namespace detail
 
 inline constexpr std::string_view protocol_schema_sha256 =
-    "21c145638fbe6a1f2d9a2cb2114403d4bee4da3c0adbac09e805a98a77d0d4da";
+    "9b236b37455965858413f5717a88e28568a459e81e87a28ff77be8845bcff75a";
 
 struct ActionResult {
   std::optional<oll::protocol::ConfigValue> result;
