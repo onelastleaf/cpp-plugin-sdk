@@ -176,6 +176,11 @@ valid peers. Protocol changes instead preserve field numbers and wire types,
 give additions safe absent semantics, and tolerate unknown fields. Exact SDK
 pins provide reproducible builds; they are not protobuf API versioning.
 
+There is no protocol-wide size cap for `PluginEnvelope`. The SDK configures
+both gRPC directions as unlimited instead of inheriting gRPC's smaller receive
+default. Artifact chunks remain bounded by the limit negotiated in
+`HostHello`, so large artifacts still use the streaming artifact API.
+
 Commit the project and push it to a Git remote that the machine running oll can
 reach. For a new oll deployment, initialize it, finish the generated
 configuration, and start the daemon:

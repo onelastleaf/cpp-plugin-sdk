@@ -31,6 +31,8 @@ struct RegisteredAction {
 
 class ParentLivenessWatcher;
 
+grpc::ChannelArguments plugin_channel_arguments();
+
 class PluginSession final {
 public:
   PluginSession(std::string plugin_id, std::string plugin_version,

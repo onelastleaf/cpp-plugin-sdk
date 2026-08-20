@@ -1,10 +1,12 @@
 #include "internal.hpp"
 #include "job_registry.hpp"
 #include "parent_liveness.hpp"
+#include "session.hpp"
 #include "validation.hpp"
 
 #include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <exception>
@@ -20,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include <grpc/impl/channel_arg_names.h>
 #include <oll/plugin.pb.h>
 #include <openssl/evp.h>
 
@@ -75,6 +78,33 @@ std::string sha256(std::string_view bytes) {
          "could not finish test digest");
   result.resize(size);
   return result;
+}
+
+std::optional<int>
+integer_channel_argument(const grpc::ChannelArguments &arguments,
+                         std::string_view name) {
+  const auto raw = arguments.c_channel_args();
+  for (std::size_t index = 0; index < raw.num_args; ++index) {
+    const auto &argument = raw.args[index];
+    if (std::string_view{argument.key} != name) {
+      continue;
+    }
+    expect(argument.type == GRPC_ARG_INTEGER,
+           "gRPC message size argument was not an integer");
+    return argument.value.integer;
+  }
+  return std::nullopt;
+}
+
+void plugin_channel_disables_grpc_message_limits() {
+  const auto arguments = onelastleaf::detail::plugin_channel_arguments();
+  const auto receive =
+      integer_channel_argument(arguments, GRPC_ARG_MAX_RECEIVE_MESSAGE_LENGTH);
+  const auto send =
+      integer_channel_argument(arguments, GRPC_ARG_MAX_SEND_MESSAGE_LENGTH);
+  expect(receive && *receive == -1,
+         "plugin channel retained a gRPC receive limit");
+  expect(send && *send == -1, "plugin channel retained a gRPC send limit");
 }
 
 struct ArtifactFixture {
@@ -373,6 +403,7 @@ void plugin_run_is_one_shot() {
 } // namespace
 
 int main() {
+  plugin_channel_disables_grpc_message_limits();
   host_call_cancellation_wakes_the_waiter();
   closing_a_session_wakes_host_calls();
   retained_hosts_fail_after_close();

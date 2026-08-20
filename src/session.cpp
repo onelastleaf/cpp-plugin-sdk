@@ -25,6 +25,16 @@
 
 namespace onelastleaf::detail {
 
+grpc::ChannelArguments plugin_channel_arguments() {
+  grpc::ChannelArguments arguments;
+  // gRPC defines -1 as unlimited. Set both directions explicitly so receive
+  // does not retain gRPC's smaller default.
+  constexpr int unlimited_message_size = -1;
+  arguments.SetMaxReceiveMessageSize(unlimited_message_size);
+  arguments.SetMaxSendMessageSize(unlimited_message_size);
+  return arguments;
+}
+
 PluginSession::PluginSession(
     std::string plugin_id, std::string plugin_version,
     const std::map<std::string, RegisteredAction> &actions)
@@ -41,11 +51,7 @@ int PluginSession::run() {
 }
 
 void PluginSession::connect() {
-  grpc::ChannelArguments channel_arguments;
-  channel_arguments.SetMaxReceiveMessageSize(
-      static_cast<int>(maximum_envelope_bytes));
-  channel_arguments.SetMaxSendMessageSize(
-      static_cast<int>(maximum_envelope_bytes));
+  auto channel_arguments = plugin_channel_arguments();
   auto channel = grpc::CreateCustomChannel(
       endpoint_target(std::getenv("OLL_PLUGIN_ENDPOINT")),
       grpc::InsecureChannelCredentials(), channel_arguments);

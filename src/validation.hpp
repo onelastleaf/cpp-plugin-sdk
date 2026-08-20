@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <string_view>
@@ -8,9 +7,6 @@
 #include <oll/plugin.pb.h>
 
 namespace onelastleaf::detail {
-
-inline constexpr std::size_t maximum_envelope_bytes =
-    std::size_t{64} * 1024U * 1024U;
 
 bool canonical_uuid_v4(std::string_view value);
 void validate_plugin_id(std::string_view value);
