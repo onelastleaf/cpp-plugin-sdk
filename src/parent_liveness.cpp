@@ -8,7 +8,13 @@
 #include <utility>
 
 #ifdef _WIN32
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
+
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
 #include <io.h>
 #include <windows.h>
 #else
@@ -72,9 +78,6 @@ void ParentLivenessWatcher::stop() noexcept {
     return;
   }
   thread_.request_stop();
-#ifdef _WIN32
-  static_cast<void>(::CancelSynchronousIo(thread_.native_handle()));
-#endif
   thread_.join();
 }
 
@@ -90,7 +93,30 @@ void ParentLivenessWatcher::notify_eof() noexcept {
 void ParentLivenessWatcher::watch(std::stop_token cancellation) noexcept {
   std::array<char, 1024> buffer{};
 #ifdef _WIN32
+  const auto native_input = ::_get_osfhandle(input_fd_);
+  if (native_input == -1) {
+    notify_eof();
+    return;
+  }
+  const auto input_handle = reinterpret_cast<HANDLE>(native_input);
+  std::condition_variable_any wake;
+  std::mutex wake_mutex;
+  std::unique_lock wake_lock{wake_mutex};
   while (!cancellation.stop_requested()) {
+    DWORD available = 0;
+    if (::PeekNamedPipe(input_handle, nullptr, 0, nullptr, &available,
+                        nullptr) == 0) {
+      if (!cancellation.stop_requested()) {
+        notify_eof();
+      }
+      return;
+    }
+    if (available == 0) {
+      static_cast<void>(wake.wait_for(wake_lock, cancellation,
+                                      std::chrono::milliseconds{50},
+                                      [] { return false; }));
+      continue;
+    }
     const int count = ::_read(input_fd_, buffer.data(),
                               static_cast<unsigned int>(buffer.size()));
     if (count > 0) {

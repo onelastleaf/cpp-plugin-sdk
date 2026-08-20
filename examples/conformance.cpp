@@ -28,8 +28,9 @@ onelastleaf::ActionResult echo(onelastleaf::ActionContext &,
   return onelastleaf::ActionResult::string(std::move(output));
 }
 
-onelastleaf::ActionResult wait(onelastleaf::ActionContext &context,
-                               const std::vector<std::string> &) {
+onelastleaf::ActionResult
+wait_for_cancellation(onelastleaf::ActionContext &context,
+                      const std::vector<std::string> &) {
   while (!context.cancellation().stop_requested()) {
     std::this_thread::sleep_for(std::chrono::milliseconds{1});
   }
@@ -98,7 +99,7 @@ onelastleaf::ActionResult artifact(onelastleaf::ActionContext &context,
 int main() {
   onelastleaf::Plugin plugin{"org.onelastleaf.conformance", "0.1.0"};
   plugin.action("echo", "Echo arguments", echo)
-      .action("wait", "Wait for cancellation", wait)
+      .action("wait", "Wait for cancellation", wait_for_cancellation)
       .action("host", "Exercise host capabilities", host_calls)
       .action("artifact", "Exercise artifact transfer", artifact);
   return plugin.run();
