@@ -4,8 +4,6 @@
 #include <stdexcept>
 
 int main() {
-  assert(std::string{onelastleaf::protocol_schema_sha256} ==
-         "9b236b37455965858413f5717a88e28568a459e81e87a28ff77be8845bcff75a");
   assert(onelastleaf::ActionResult::string("value").result->string_value() ==
          "value");
   try {

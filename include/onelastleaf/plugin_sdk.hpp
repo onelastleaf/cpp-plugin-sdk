@@ -19,9 +19,6 @@ class PluginSession;
 struct HostAccess;
 } // namespace detail
 
-inline constexpr std::string_view protocol_schema_sha256 =
-    "9b236b37455965858413f5717a88e28568a459e81e87a28ff77be8845bcff75a";
-
 struct ActionResult {
   std::optional<oll::protocol::ConfigValue> result;
   std::vector<oll::protocol::ArtifactDescriptor> artifacts;

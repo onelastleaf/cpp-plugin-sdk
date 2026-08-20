@@ -76,9 +76,7 @@ void PluginSession::handshake() {
         "HostHello envelope omitted its session or instance identity");
   }
   const auto &hello = first.host_hello();
-  if (!hello.has_node() ||
-      hello.protocol_schema_sha256() != protocol_schema_sha256_bytes() ||
-      hello.plugin_id().value() != plugin_id_ ||
+  if (!hello.has_node() || hello.plugin_id().value() != plugin_id_ ||
       hello.plugin_name().value().empty() || hello.maximum_call_depth() == 0 ||
       hello.maximum_causal_depth() == 0 ||
       hello.maximum_artifact_chunk_bytes() == 0) {
@@ -101,7 +99,6 @@ void PluginSession::handshake() {
   auto *payload = plugin_hello.mutable_plugin_hello();
   payload->mutable_plugin_id()->set_value(plugin_id_);
   *payload->mutable_plugin_name() = hello.plugin_name();
-  payload->set_protocol_schema_sha256(hello.protocol_schema_sha256());
   payload->set_plugin_version(plugin_version_);
   for (const auto &[name, action] : actions_) {
     auto *descriptor = payload->add_actions();

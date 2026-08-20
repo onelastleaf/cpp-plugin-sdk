@@ -66,10 +66,8 @@ target_link_libraries(my-plugin PRIVATE onelastleaf::plugin_sdk)
 install(TARGETS my-plugin RUNTIME DESTINATION bin)
 ```
 
-Keep `GIT_TAG` pinned. The SDK and oll must agree on the exact protocol
-fingerprint, so a floating branch can turn a routine rebuild into a protocol
-mismatch. You can pin a commit instead; remove `GIT_SHALLOW TRUE` if that commit
-is not the tip of a fetched tag.
+Keep `GIT_TAG` pinned so builds are reproducible. You can pin a commit instead;
+remove `GIT_SHALLOW TRUE` if that commit is not the tip of a fetched tag.
 
 Here is the smallest useful `src/main.cpp`: register an action, then hand control
 to the SDK with `run()`.
@@ -145,7 +143,6 @@ format_version = 1
 [plugin]
 id = "com.example.my-plugin"
 name = "my-plugin"
-protocol_fingerprint = "9b236b37455965858413f5717a88e28568a459e81e87a28ff77be8845bcff75a"
 
 [source]
 checkout = "source"
@@ -172,9 +169,12 @@ placeholders, builds from a private source checkout, and writes the installed
 result into a candidate that is renamed into an immutable generation. It only
 launches the executable from the published generation.
 
-When you upgrade the SDK, update the manifest fingerprint to match
-`onelastleaf::protocol_schema_sha256`. A plugin built for a different
-fingerprint is intentionally rejected during the handshake.
+This SDK follows the canonical protobuf wire contract. It never computes,
+embeds, publishes, or compares a schema hash or fingerprint. Descriptor-wide
+hashes change for compatible additions and unrelated services, so they reject
+valid peers. Protocol changes instead preserve field numbers and wire types,
+give additions safe absent semantics, and tolerate unknown fields. Exact SDK
+pins provide reproducible builds; they are not protobuf API versioning.
 
 Commit the project and push it to a Git remote that the machine running oll can
 reach. For a new oll deployment, initialize it, finish the generated

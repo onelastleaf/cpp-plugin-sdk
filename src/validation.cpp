@@ -41,16 +41,6 @@ bool ipv4_loopback(std::string_view host) {
   return octets[0] == 127;
 }
 
-unsigned char hex_nibble(char value) {
-  if (value >= '0' && value <= '9') {
-    return static_cast<unsigned char>(value - '0');
-  }
-  if (value >= 'a' && value <= 'f') {
-    return static_cast<unsigned char>(value - 'a' + 10);
-  }
-  throw std::logic_error("protocol fingerprint is not lowercase hexadecimal");
-}
-
 } // namespace
 
 bool canonical_uuid_v4(std::string_view value) {
@@ -111,20 +101,6 @@ std::string endpoint_target(const char *value) {
         "OLL_PLUGIN_ENDPOINT must use a loopback host and explicit port");
   }
   return target;
-}
-
-const std::string &protocol_schema_sha256_bytes() {
-  static const std::string bytes = [] {
-    constexpr auto hex = protocol_schema_sha256;
-    static_assert(hex.size() == 64);
-    std::string result(hex.size() / 2, '\0');
-    for (std::size_t index = 0; index < result.size(); ++index) {
-      result[index] = static_cast<char>((hex_nibble(hex[index * 2]) << 4U) |
-                                        hex_nibble(hex[index * 2 + 1]));
-    }
-    return result;
-  }();
-  return bytes;
 }
 
 void validate_envelope(const oll::protocol::PluginEnvelope &envelope,

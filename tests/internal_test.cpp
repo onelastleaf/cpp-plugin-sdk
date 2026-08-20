@@ -343,8 +343,6 @@ void validation_has_single_reusable_sources() {
   expect(!onelastleaf::detail::canonical_uuid_v4(
              "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA"),
          "non-canonical UUID was accepted");
-  expect(onelastleaf::detail::protocol_schema_sha256_bytes().size() == 32,
-         "protocol fingerprint did not decode to SHA-256 bytes");
 }
 
 void plugin_run_is_one_shot() {
