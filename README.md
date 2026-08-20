@@ -12,7 +12,8 @@ are changing the SDK itself, jump to [Work on the SDK](#work-on-the-sdk).
 You will need:
 
 - CMake 3.24 or newer
-- a C++20 compiler
+- a C++20 compiler and standard library with `std::jthread` and
+  `std::stop_token` (Xcode 26 or newer on macOS)
 - pkg-config
 - OpenSSL development files
 - protobuf development files and `protoc`

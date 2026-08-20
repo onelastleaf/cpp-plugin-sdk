@@ -38,9 +38,9 @@ jobs:
             cc: clang-18
             cxx: clang++-18
             shell: bash
-          - platform: macOS 15
-            os: macos-15
-            compiler: AppleClang
+          - platform: macOS 26
+            os: macos-26
+            compiler: AppleClang (Xcode 26)
             cc: clang
             cxx: clang++
             shell: bash

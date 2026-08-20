@@ -1,5 +1,6 @@
 #include "internal.hpp"
 
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -21,6 +22,17 @@
 #include <onelastleaf/plugin_sdk.hpp>
 
 namespace onelastleaf {
+
+namespace {
+
+google::protobuf::Timestamp current_timestamp() {
+  const auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      std::chrono::system_clock::now().time_since_epoch());
+  return google::protobuf::util::TimeUtil::NanosecondsToTimestamp(
+      nanoseconds.count());
+}
+
+} // namespace
 
 ActionResult ActionResult::string(std::string value) {
   ActionResult result;
@@ -183,8 +195,7 @@ void Host::log(const oll::protocol::TraceContext &trace,
                std::map<std::string, oll::protocol::ConfigValue> fields) const {
   oll::protocol::PluginEnvelope envelope;
   auto *log = envelope.mutable_log();
-  *log->mutable_timestamp() =
-      google::protobuf::util::TimeUtil::GetCurrentTime();
+  *log->mutable_timestamp() = current_timestamp();
   log->set_level(level);
   log->set_target(std::move(target));
   log->set_message(std::move(message));

@@ -22,7 +22,6 @@
 #include <utility>
 #include <vector>
 
-#include <grpc/impl/channel_arg_names.h>
 #include <oll/plugin.pb.h>
 #include <openssl/evp.h>
 
@@ -98,13 +97,54 @@ integer_channel_argument(const grpc::ChannelArguments &arguments,
 
 void plugin_channel_disables_grpc_message_limits() {
   const auto arguments = onelastleaf::detail::plugin_channel_arguments();
-  const auto receive =
-      integer_channel_argument(arguments, GRPC_ARG_MAX_RECEIVE_MESSAGE_LENGTH);
-  const auto send =
-      integer_channel_argument(arguments, GRPC_ARG_MAX_SEND_MESSAGE_LENGTH);
-  expect(receive && *receive == -1,
-         "plugin channel retained a gRPC receive limit");
-  expect(send && *send == -1, "plugin channel retained a gRPC send limit");
+  const grpc::ChannelArguments defaults;
+  grpc::ChannelArguments expected;
+  expected.SetMaxReceiveMessageSize(-1);
+  expected.SetMaxSendMessageSize(-1);
+  const auto expected_arguments = expected.c_channel_args();
+  std::size_t checked = 0;
+  for (std::size_t index = 0; index < expected_arguments.num_args; ++index) {
+    const auto &expected_argument = expected_arguments.args[index];
+    if (expected_argument.type != GRPC_ARG_INTEGER) {
+      continue;
+    }
+    const auto default_value =
+        integer_channel_argument(defaults, expected_argument.key);
+    if (default_value && *default_value == expected_argument.value.integer) {
+      continue;
+    }
+    const auto actual =
+        integer_channel_argument(arguments, expected_argument.key);
+    expect(actual && *actual == expected_argument.value.integer,
+           "plugin channel retained a gRPC message limit");
+    ++checked;
+  }
+  expect(checked == 2, "gRPC message size setters changed unexpectedly");
+}
+
+void logs_use_the_system_clock() {
+  auto impl = HostAccess::make_impl();
+  std::vector<oll::protocol::PluginEnvelope> writes;
+  impl->sender = std::make_shared<onelastleaf::Sender>(
+      [&writes](const oll::protocol::PluginEnvelope &envelope) {
+        writes.push_back(envelope);
+        return true;
+      });
+  auto host = HostAccess::make(impl);
+
+  const auto before = std::chrono::system_clock::now().time_since_epoch();
+  host.log(trace(), oll::protocol::LOG_LEVEL_INFO, "test", "test");
+  const auto after = std::chrono::system_clock::now().time_since_epoch();
+
+  expect(writes.size() == 1 && writes.front().has_log(),
+         "Host::log did not send one log envelope");
+  const auto &timestamp = writes.front().log().timestamp();
+  const auto logged_at = std::chrono::seconds{timestamp.seconds()} +
+                         std::chrono::nanoseconds{timestamp.nanos()};
+  constexpr auto clock_tolerance = 1ms;
+  expect(logged_at + clock_tolerance >= before &&
+             logged_at <= after + clock_tolerance,
+         "Host::log did not use the current system time");
 }
 
 struct ArtifactFixture {
@@ -404,6 +444,7 @@ void plugin_run_is_one_shot() {
 
 int main() {
   plugin_channel_disables_grpc_message_limits();
+  logs_use_the_system_clock();
   host_call_cancellation_wakes_the_waiter();
   closing_a_session_wakes_host_calls();
   retained_hosts_fail_after_close();
