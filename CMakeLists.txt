@@ -50,8 +50,6 @@ add_library(onelastleaf-plugin-sdk
 add_library(onelastleaf::plugin_sdk ALIAS onelastleaf-plugin-sdk)
 set_target_properties(onelastleaf-plugin-sdk PROPERTIES EXPORT_NAME plugin_sdk)
 
-add_executable(plugin-sdk-conformance EXCLUDE_FROM_ALL examples/conformance.cpp)
-target_link_libraries(plugin-sdk-conformance PRIVATE onelastleaf::plugin_sdk)
 target_compile_features(onelastleaf-plugin-sdk PUBLIC cxx_std_20)
 target_include_directories(onelastleaf-plugin-sdk
   PUBLIC
@@ -93,6 +91,13 @@ option(
 )
 if(ONELASTLEAF_PLUGIN_SDK_BUILD_TESTS)
   enable_testing()
+
+  add_executable(
+    plugin-sdk-conformance
+    EXCLUDE_FROM_ALL
+    tests/fixtures/conformance/main.cpp
+  )
+  target_link_libraries(plugin-sdk-conformance PRIVATE onelastleaf::plugin_sdk)
 
   add_executable(plugin-sdk-test tests/plugin_test.cpp)
   target_link_libraries(plugin-sdk-test PRIVATE onelastleaf::plugin_sdk)

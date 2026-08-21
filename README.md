@@ -104,8 +104,8 @@ Keep the ID passed to `Plugin` identical to `plugin.id` in `oll.toml`. oll may
 run more than one action at a time, so write handlers with concurrency in mind.
 When an action needs more than its arguments, `ActionContext` gives it
 cancellation and deadline information, configuration access, host calls,
-structured logging, and artifact publishing. See
-[`examples/conformance.cpp`](examples/conformance.cpp) for working examples.
+structured logging, and artifact publishing. The project created by
+`oll plugin new` is the complete starting point.
 
 `context.host()` returns a cheap value that is safe to copy during the action.
 It is tied to that job, though: calls made after the action finishes, after the
@@ -234,8 +234,8 @@ SDK tests are opt-in. Keeping them off for normal consumers also keeps CMake's
 reserved `test` build target out of their projects, so a plugin may itself be
 named `test`.
 
-The conformance plugin is not part of the default build. Build it explicitly
-when you need it:
+The conformance fixture is not part of the default build. Build it explicitly
+when you need to run the shared protocol suite:
 
 ```sh
 cmake --build build --target plugin-sdk-conformance --parallel

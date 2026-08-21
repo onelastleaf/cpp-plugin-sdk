@@ -7,7 +7,11 @@ endif()
 
 add_subdirectory("${ONELASTLEAF_PLUGIN_SDK_SOURCE_DIR}" plugin-sdk)
 
-foreach(SDK_TEST_TARGET IN ITEMS plugin-sdk-test plugin-sdk-internal-test)
+foreach(SDK_TEST_TARGET IN ITEMS
+  plugin-sdk-conformance
+  plugin-sdk-test
+  plugin-sdk-internal-test
+)
   if(TARGET "${SDK_TEST_TARGET}")
     message(FATAL_ERROR "${SDK_TEST_TARGET} must not be created by default")
   endif()
